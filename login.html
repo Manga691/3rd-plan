@@ -1,0 +1,193 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow-x: hidden;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+        }
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: twinkle 3s infinite alternate;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.8; }
+        }
+        .container {
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            color: #ffffff;
+        }
+        .login-form {
+            text-align: center;
+            padding: 2rem;
+            background-color: #1f2937;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        input {
+            padding: 0.75rem 1rem;
+            border: 2px solid #4b5563;
+            border-radius: 0.5rem;
+            background-color: #1f2937;
+            color: #ffffff;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 1rem;
+        }
+        input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.5);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            color: #ffffff;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            background-color: #2563eb;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            input, button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="container">
+        <h1>Login</h1>
+        <div class="login-form">
+            <input type="text" id="usernameInput" placeholder="Enter Username">
+            <input type="password" id="keyInput" placeholder="Enter Key">
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+ <script>
+    const KEYS = ['11221', 'Free' , '123'];
+
+    function createStars() {
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = `${Math.random() * 3 + 1}px`;
+            star.style.height = star.style.width;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 3}s`;
+            starsContainer.appendChild(star);
+        }
+    }
+
+    function login() {
+        const username = document.getElementById('usernameInput').value.trim();
+        const key = document.getElementById('keyInput').value.trim();
+
+        // التحقق من أن المفتاح موجود في Array KEYS
+        if (username && KEYS.includes(key)) {
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('currentUsername', username);
+            window.location.href = 'index.html';
+        } else {
+            alert('Invalid username or key. The key must be correct to proceed.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        createStars();
+    });
+
+    document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('keyInput').focus();
+    });
+
+    document.getElementById('keyInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') login();
+    });
+</script>
+
+</body>
+</html>
