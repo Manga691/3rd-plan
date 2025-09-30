@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3rd Planner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
@@ -211,6 +212,12 @@
         .bg-red-600:hover {
             background-color: #b91c1c;
         }
+        .bg-green-600 {
+            background-color: #16a34a;
+        }
+        .bg-green-600:hover {
+            background-color: #15803d;
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -236,6 +243,11 @@
         }
         .subjects-section:hover {
             background-color: #2d3748;
+        }
+        .download-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
         }
         h2 {
             font-size: 1.5rem;
@@ -469,6 +481,9 @@
                 <h3>Subjects of the week</h3>
                 <ul class="subject-list" id="subjectList"></ul>
             </div>
+            <div class="download-section">
+                <button onclick="downloadPlannerAsPNG()" class="bg-green-600">Download as PNG</button>
+            </div>
         </div>
     </div>
     <script>
@@ -651,6 +666,22 @@
                 };
             }
             localStorage.setItem(`weeklyPlannerHistory_${currentUsername}`, JSON.stringify(history));
+        }
+
+        function downloadPlannerAsPNG() {
+            const plannerContent = document.getElementById('plannerContent');
+            html2canvas(plannerContent, {
+                backgroundColor: '#1B2735',
+                useCORS: true,
+                scale: 2
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `3rdPlanner_${currentUsername || 'planner'}_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(error => {
+                console.error('Error generating PNG:', error);
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
